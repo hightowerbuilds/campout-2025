@@ -82,7 +82,8 @@ function Game() {
     const player = {
       x: width / 2,
       y: height / 2,
-      size: 20,
+      width: 20,
+      height: 60,  // Three times as tall as wide
       speed: 5,
       lastShot: 0,  // Timestamp of last shot
       shootCooldown: 250  // Cooldown between shots in milliseconds
@@ -538,8 +539,11 @@ function Game() {
         const dy = player.y - orca.y
         const distance = Math.sqrt(dx * dx + dy * dy)
         
+        // Use average of width and height for collision detection
+        const playerRadius = (player.width + player.height) / 4
+        
         // Make collision detection more sensitive
-        if (distance < (player.size + orca.size)) {
+        if (distance < (playerRadius + orca.size)) {
           setGameOver(true)
           return
         }
@@ -692,8 +696,8 @@ function Game() {
         }
 
         // Keep player in bounds
-        player.x = Math.max(player.size, Math.min(width - player.size, player.x))
-        player.y = Math.max(player.size, Math.min(height - player.size, player.y))
+        player.x = Math.max(player.width/2, Math.min(width - player.width/2, player.x))
+        player.y = Math.max(player.height/2, Math.min(height - player.height/2, player.y))
 
         // Check for player collisions
         checkPlayerCollisions()
@@ -707,13 +711,76 @@ function Game() {
       drawScoreboard(context)
 
       // Draw player
+      // Draw the top orange section
       context.fillStyle = '#f39c12'
       context.fillRect(
-        player.x - player.size / 2,
-        player.y - player.size / 2,
-        player.size,
-        player.size
+        player.x - player.width / 2,
+        player.y - player.height / 2,
+        player.width,
+        player.height / 3
       )
+
+      // Draw the middle blue section
+      context.fillStyle = '#3498db'  // Blue color
+      context.fillRect(
+        player.x - player.width / 2,
+        player.y - player.height / 6,  // Start after top third
+        player.width,
+        player.height / 3
+      )
+
+      // Draw the bottom orange section
+      context.fillStyle = '#f39c12'
+      context.fillRect(
+        player.x - player.width / 2,
+        player.y + player.height / 6,  // Start after middle third
+        player.width,
+        player.height / 3
+      )
+
+      // Draw the bottom border
+      context.fillStyle = '#d35400'  // Darker orange for the border
+      context.fillRect(
+        player.x - player.width / 2,  // Same x position as block
+        player.y + player.height / 2 - 5,  // 5px from bottom of block
+        player.width,  // Same width as block
+        5  // 5px thick border
+      )
+
+      // Draw the circle on top
+      context.fillStyle = '#f39c12'  // Same orange color as the block
+      context.beginPath()
+      context.arc(
+        player.x,  // Center of the block
+        player.y - player.height / 2,  // Top of the block
+        12,  // Circle radius
+        0,
+        Math.PI * 2
+      )
+      context.fill()
+
+      // Draw the eyes
+      context.fillStyle = '#000000'  // Black color for eyes
+      // Left eye
+      context.beginPath()
+      context.arc(
+        player.x - 6,  // 6px to the left of center
+        player.y - player.height / 2,  // Same y as circle
+        3,  // Eye radius
+        0,
+        Math.PI * 2
+      )
+      context.fill()
+      // Right eye
+      context.beginPath()
+      context.arc(
+        player.x + 6,  // 6px to the right of center
+        player.y - player.height / 2,  // Same y as circle
+        3,  // Eye radius
+        0,
+        Math.PI * 2
+      )
+      context.fill()
 
       // Draw game over screen if game is over
       if (gameOver) {
