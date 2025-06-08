@@ -43,6 +43,8 @@ interface OrcaGuts {
     rotation: number
     speed: number
     direction: Position
+    color: string
+    shape: string
   }[]
   createdAt: number
 }
@@ -383,22 +385,25 @@ function Game() {
     // Function to create orca guts
     const createOrcaGuts = (x: number, y: number, size: number) => {
       const pieces = []
-      const numPieces = 8
+      const numPieces = 15  // Increased from 8 to 15 pieces
       
-      // Create multiple pieces of guts
+      // Create multiple pieces of guts with more variation
       for (let i = 0; i < numPieces; i++) {
         const angle = (Math.PI * 2 * i) / numPieces
-        const speed = Math.random() * 2 + 1
+        const speed = Math.random() * 4 + 2  // Increased speed range
+        const pieceSize = (Math.random() * 0.5 + 0.5) * (size / 3)  // More size variation
         pieces.push({
           x: 0,
           y: 0,
-          size: size / 4,
+          size: pieceSize,
           rotation: Math.random() * Math.PI * 2,
           speed: speed,
           direction: {
-            x: Math.cos(angle) * speed,
-            y: Math.sin(angle) * speed
-          }
+            x: Math.cos(angle) * speed * (Math.random() * 0.5 + 0.75),  // Add some randomness to direction
+            y: Math.sin(angle) * speed * (Math.random() * 0.5 + 0.75)
+          },
+          color: Math.random() > 0.5 ? '#8B0000' : '#4B0000',  // Random dark red shades
+          shape: Math.random() > 0.5 ? 'circle' : 'splat'  // Random shape
         })
       }
 
@@ -422,17 +427,37 @@ function Game() {
         context.translate(x + piece.x, y + piece.y)
         context.rotate(piece.rotation)
 
-        // Draw a red, gory piece
-        context.fillStyle = '#8B0000'  // Dark red
-        context.beginPath()
-        context.ellipse(0, 0, piece.size, piece.size/2, 0, 0, Math.PI * 2)
-        context.fill()
+        // Draw the piece based on its shape
+        if (piece.shape === 'circle') {
+          // Draw a circular piece
+          context.fillStyle = piece.color
+          context.beginPath()
+          context.arc(0, 0, piece.size, 0, Math.PI * 2)
+          context.fill()
 
-        // Add some darker details
-        context.fillStyle = '#4B0000'  // Darker red
-        context.beginPath()
-        context.ellipse(piece.size/4, 0, piece.size/4, piece.size/4, 0, 0, Math.PI * 2)
-        context.fill()
+          // Add a darker center
+          context.fillStyle = '#2B0000'
+          context.beginPath()
+          context.arc(0, 0, piece.size * 0.4, 0, Math.PI * 2)
+          context.fill()
+        } else {
+          // Draw a splat shape
+          context.fillStyle = piece.color
+          context.beginPath()
+          context.ellipse(0, 0, piece.size, piece.size * 0.6, 0, 0, Math.PI * 2)
+          context.fill()
+
+          // Add some splatter details
+          context.fillStyle = '#2B0000'
+          for (let i = 0; i < 3; i++) {
+            const angle = (Math.PI * 2 * i) / 3
+            const detailX = Math.cos(angle) * piece.size * 0.3
+            const detailY = Math.sin(angle) * piece.size * 0.3
+            context.beginPath()
+            context.arc(detailX, detailY, piece.size * 0.2, 0, Math.PI * 2)
+            context.fill()
+          }
+        }
 
         context.restore()
       })
@@ -446,15 +471,25 @@ function Game() {
         const guts = orcaGuts[i]
         const timeSinceCreation = now - guts.createdAt
 
-        // Update each piece's position
+        // Update each piece's position with some physics
         guts.pieces.forEach(piece => {
+          // Add some gravity effect
+          piece.direction.y += 0.1
+          
+          // Add some rotation variation
+          piece.rotation += 0.05 * (Math.random() - 0.5)
+          
+          // Update position
           piece.x += piece.direction.x
           piece.y += piece.direction.y
-          piece.rotation += 0.1
+          
+          // Add some drag
+          piece.direction.x *= 0.98
+          piece.direction.y *= 0.98
         })
 
-        // Remove guts after 5 seconds
-        if (timeSinceCreation > 5000) {
+        // Remove guts after 3 seconds (reduced from 5)
+        if (timeSinceCreation > 3000) {
           orcaGuts.splice(i, 1)
         }
       }
