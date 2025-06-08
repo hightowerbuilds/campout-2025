@@ -1,16 +1,18 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import logo from '../logo.svg'
 import '../App.css'
 
 export const Route = createFileRoute('/')({
-  component: App,
+  component: Index,
 })
 
-function App() {
+function Index() {
   return (
-    <div className="App">
-     campout 2025
-     
+    <div className="index-container">
+      <h1>Campout 2025</h1>
+      <Link to="/game" className="start-game-button">
+        Start Game
+      </Link>
     </div>
   )
 }
